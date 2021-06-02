@@ -22,7 +22,7 @@ func GetUserByEmailHandler(userService user.UserService) func(ctx *gin.Context) 
 
 		validate := validator.New()
 		if err := validate.Struct(&getUserByEmailRequest); err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
+			ctx.JSON(http.StatusUnprocessableEntity, gin.H{
 				"error": err.Error(),
 			})
 			return
