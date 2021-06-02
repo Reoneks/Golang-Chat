@@ -1,4 +1,4 @@
-package rooms_handler
+package room_handler
 
 import (
 	"net/http"
@@ -13,7 +13,7 @@ type AddUsersRequest struct {
 	UsersToAdd []int64 `json:"other_users"`
 }
 
-func AddUsersHandler(roomsService rooms.RoomService) func(ctx *gin.Context) {
+func AddUsersHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var addUsersRequest AddUsersRequest
 		if err := ctx.BindJSON(&addUsersRequest); err != nil {

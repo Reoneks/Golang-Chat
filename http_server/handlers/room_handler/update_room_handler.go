@@ -1,4 +1,4 @@
-package rooms_handler
+package room_handler
 
 import (
 	"net/http"
@@ -17,7 +17,7 @@ type UpdateRoomRequest struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func UpdateRoomHandler(roomsService rooms.RoomService) func(ctx *gin.Context) {
+func UpdateRoomHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var updateRoomRequest UpdateRoomRequest
 		if err := ctx.BindJSON(&updateRoomRequest); err != nil {
@@ -27,7 +27,7 @@ func UpdateRoomHandler(roomsService rooms.RoomService) func(ctx *gin.Context) {
 
 		thisUser, _ := ctx.Get("user")
 		room, err := roomsService.UpdateRoom(
-			rooms.Rooms(updateRoomRequest),
+			room.Rooms(updateRoomRequest),
 			thisUser.(*user.User).Id,
 		)
 		if err != nil && err.Error() == "you are not allowed to do it" {

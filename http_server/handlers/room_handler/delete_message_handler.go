@@ -1,4 +1,4 @@
-package rooms_handler
+package room_handler
 
 import (
 	"net/http"
@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func DeleteMessageHandler(roomsService rooms.RoomService) func(ctx *gin.Context) {
+func DeleteMessageHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		id, err := strconv.Atoi(ctx.Param("messageId"))
 		if err != nil {

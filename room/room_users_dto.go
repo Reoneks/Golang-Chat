@@ -1,4 +1,4 @@
-package rooms
+package room
 
 type RoomUsersDto struct {
 	UserID int64 `gorm:"column:user_id"`

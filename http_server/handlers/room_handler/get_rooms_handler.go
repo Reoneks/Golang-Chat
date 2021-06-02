@@ -1,4 +1,4 @@
-package rooms_handler
+package room_handler
 
 import (
 	"net/http"
@@ -11,7 +11,7 @@ type GetRoomsRequest struct {
 	Name *string `form:"name"`
 }
 
-func GetRoomsHandler(roomsService rooms.RoomService) func(ctx *gin.Context) {
+func GetRoomsHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var getRoomsRequest GetRoomsRequest
 		if err := ctx.Bind(&getRoomsRequest); err != nil {
@@ -19,7 +19,7 @@ func GetRoomsHandler(roomsService rooms.RoomService) func(ctx *gin.Context) {
 			return
 		}
 
-		filter := &rooms.RoomsFilter{
+		filter := &room.RoomsFilter{
 			Name: getRoomsRequest.Name,
 		}
 		rooms, err := roomsService.GetRooms(filter)

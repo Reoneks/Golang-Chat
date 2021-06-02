@@ -1,4 +1,4 @@
-package rooms_handler
+package room_handler
 
 import (
 	"net/http"
@@ -18,7 +18,7 @@ type UpdateMessageRequest struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-func UpdateMessageHandler(roomsService rooms.RoomService) func(ctx *gin.Context) {
+func UpdateMessageHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var updateMessageRequest UpdateMessageRequest
 		if err := ctx.BindJSON(&updateMessageRequest); err != nil {
@@ -26,7 +26,7 @@ func UpdateMessageHandler(roomsService rooms.RoomService) func(ctx *gin.Context)
 			return
 		}
 
-		message, err := roomsService.UpdateMessage(rooms.Messages(updateMessageRequest))
+		message, err := roomsService.UpdateMessage(room.Messages(updateMessageRequest))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"error": err,

@@ -1,4 +1,4 @@
-package rooms
+package room
 
 func FromRoomsDto(roomDto RoomsDto) Rooms {
 	return Rooms(roomDto)

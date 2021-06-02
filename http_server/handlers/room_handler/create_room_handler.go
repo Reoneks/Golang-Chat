@@ -1,4 +1,4 @@
-package rooms_handler
+package room_handler
 
 import (
 	"net/http"
@@ -16,7 +16,7 @@ type CreateRoomsRequest struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func CreateRoomHandler(roomsService rooms.RoomService) func(ctx *gin.Context) {
+func CreateRoomHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var createRoomsRequest CreateRoomsRequest
 		if err := ctx.BindJSON(&createRoomsRequest); err != nil {
@@ -24,7 +24,7 @@ func CreateRoomHandler(roomsService rooms.RoomService) func(ctx *gin.Context) {
 			return
 		}
 
-		rooms, err := roomsService.CreateRoom(rooms.Rooms(createRoomsRequest))
+		rooms, err := roomsService.CreateRoom(room.Rooms(createRoomsRequest))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),

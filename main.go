@@ -1,16 +1,24 @@
 package main
 
 import (
+	"github.com/gorilla/websocket"
 	"log"
-	"test/api"
+	"net/http"
 	"test/auth"
-	"test/rooms"
-	"test/user"
+	. "test/connector"
+	"test/http_server"
+	. "test/room"
+	. "test/user"
 
 	c "test/config"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+)
+
+const (
+	readBufferSize  = 1024
+	writeBufferSize = 1024
 )
 
 func main() {
@@ -24,20 +32,30 @@ func main() {
 	jwt := config.JWT()
 	log := config.Log()
 
-	userRepository := user.NewUserRepository(db)
-	roomsRepository := rooms.NewRoomRepository(db)
-	uPRepository := rooms.NewRoomUsersRepository(db)
-	commentsRepository := rooms.NewMessagesRepository(db)
+	var upgrader = &websocket.Upgrader{
+		ReadBufferSize:  readBufferSize,
+		WriteBufferSize: writeBufferSize,
+		CheckOrigin:     func(r *http.Request) bool { return true },
+	}
 
-	userService := user.NewUserService(userRepository)
-	roomsService := rooms.NewRoomService(roomsRepository, uPRepository, commentsRepository)
+	userRepository := NewUserRepository(db)
+	roomsRepository := NewRoomRepository(db)
+	uPRepository := NewRoomUsersRepository(db)
+	commentsRepository := NewMessagesRepository(db)
+
+	userService := NewUserService(userRepository)
+	roomsService := NewRoomService(roomsRepository, uPRepository, commentsRepository)
 	authService := auth.NewAuthService(userService, jwt)
 
-	httpServer := api.NewHTTPServer(
+	connector := NewWSConnector(log, roomsService)
+
+	httpServer := http_server.NewHTTPServer(
 		config.ServerAddress(),
 		authService,
 		userService,
 		roomsService,
+		connector,
+		upgrader,
 		jwt,
 		log,
 	)

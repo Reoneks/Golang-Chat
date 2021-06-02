@@ -1,4 +1,4 @@
-package rooms
+package room
 
 type RoomsFilter struct {
 	Name *string

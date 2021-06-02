@@ -1,4 +1,4 @@
-package rooms
+package room
 
 import (
 	gm "gorm.io/gorm"

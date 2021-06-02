@@ -1,4 +1,4 @@
-package rooms
+package room
 
 func FromMessagesDto(messagesDto MessagesDto) Messages {
 	return Messages(messagesDto)
