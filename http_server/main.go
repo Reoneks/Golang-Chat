@@ -1,11 +1,12 @@
 package http_server
 
 import (
-	"github.com/gorilla/websocket"
 	"net/http"
 	"net/url"
 	. "test/connector"
 	"test/http_server/handlers/ws"
+
+	"github.com/gorilla/websocket"
 
 	. "test/auth"
 	"test/http_server/handlers/auth_handler"
@@ -66,13 +67,20 @@ func (s *httpServer) Start() error {
 	router.POST("/login", auth_handler.LoginHandler(s.authService))
 	router.POST("/registration", user_handler.RegistrationHandler(s.userService))
 
+	router.LoadHTMLGlob("site/index.html")
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{
+			"title": "Main website",
+		})
+	})
+
 	private := router.Group("/")
+
+	//^ WS Handlers
+	router.Any("/ws", ws.WSHandler(s.connector, s.upgrader))
 
 	private.Use(middleware.AuthMiddleware(s.userService, s.jwt))
 	{
-		//^ WS Handlers
-		private.Any("/ws", ws.WSHandler(s.connector, s.upgrader))
-
 		//^ User Handlers
 		private.GET("/user/:userId", user_handler.GetUserHandler(s.userService))
 		private.GET("/user/email", user_handler.GetUserByEmailHandler(s.userService))

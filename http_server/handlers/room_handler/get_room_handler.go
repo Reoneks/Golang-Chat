@@ -3,7 +3,7 @@ package room_handler
 import (
 	"net/http"
 	"strconv"
-	"test/rooms"
+	"test/room"
 
 	"github.com/gin-gonic/gin"
 )

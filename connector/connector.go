@@ -1,10 +1,11 @@
 package connector
 
 import (
-	"github.com/gorilla/websocket"
-	"github.com/sirupsen/logrus"
 	"sync"
 	. "test/room"
+
+	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 )
 
 type Connector interface {
@@ -26,7 +27,13 @@ func (c *WSConnectorImpl) AddConnection(conn Connection) {
 }
 
 func (c *WSConnectorImpl) SendMessageByRoom(roomID int64, data interface{}) {
-	// TODO: Check that room exist
+	room := *c.rooms[roomID]
+	if room == nil {
+		c.log.Error("connector 32: room is nil")
+		//TODO: some error here
+		return
+	}
+	room.SendMessage(data)
 }
 
 func (c *WSConnectorImpl) connect(conn Connection) {
@@ -37,13 +44,18 @@ func (c *WSConnectorImpl) connect(conn Connection) {
 	go c.listen(conn)
 }
 
+func (c *WSConnectorImpl) disconnect(conn Connection) {
+	room := *c.rooms[conn.GetCurrentRoom()]
+	room.RemoveConnection(conn)
+}
+
 func (c *WSConnectorImpl) listen(conn Connection) {
 	for {
 		select {
-		//case msg := <-conn.GetMessageChan():
-		//c.onEventMessage(conn, msg)
+		case msg := <-conn.GetMessageChan():
+			c.onEventMessage(conn, msg)
 		case <-conn.GetDisconnectChan():
-			//c.disconnect(conn)
+			c.disconnect(conn)
 		}
 	}
 }

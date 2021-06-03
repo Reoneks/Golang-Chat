@@ -1,9 +1,10 @@
 package connector
 
 import (
-	"github.com/gorilla/websocket"
 	"net/http"
 	. "test/user"
+
+	"github.com/gorilla/websocket"
 )
 
 type Connection interface {
@@ -47,18 +48,18 @@ func (c *WSConnection) Connect() error {
 	return nil
 }
 
-func connect() {
+func (c *WSConnection) connect() {
 	for {
 		select {
 		case <-c.closeConnChan:
 			c.isConnected = false
-			break
+			return
 		default:
 			_, msgData, err := c.conn.ReadMessage()
 			if err != nil {
 				c.isConnected = false
 				c.disconnectChan <- struct{}{}
-				break
+				return
 			}
 			c.messageChan <- msgData
 		}

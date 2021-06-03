@@ -2,7 +2,7 @@ package room_handler
 
 import (
 	"net/http"
-	"test/rooms"
+	"test/room"
 	"test/user"
 
 	"github.com/gin-gonic/gin"
