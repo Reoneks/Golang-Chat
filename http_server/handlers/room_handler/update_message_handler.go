@@ -26,7 +26,7 @@ func UpdateMessageHandler(roomsService room.RoomService) func(ctx *gin.Context) 
 			return
 		}
 
-		message, err := roomsService.UpdateMessage(room.Messages(updateMessageRequest))
+		message, err := roomsService.UpdateMessage(room.Message(updateMessageRequest))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"error": err,

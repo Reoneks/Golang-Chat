@@ -7,13 +7,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-/*
- *ctx.Errors = append(ctx.Errors, &gin.Error{
- *	Err:  errors.New("some error"),
- *	Type: http.StatusBadRequest,
- *	Meta: "Some message",
- *})
- */
+//ctx.Errors = append(ctx.Errors, &gin.Error{
+//	Err:  errors.New("some error"),
+//	Type: http.StatusBadRequest,
+//	Meta: "Some message",
+//})
+
 func ErrorHandling(log *logrus.Entry) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Next()

@@ -5,14 +5,14 @@ import (
 )
 
 type RoomService interface {
-	GetRoom(id int64) (*Rooms, []Messages, error)
+	GetRoom(id int64) (*Rooms, []Message, error)
 	GetRooms(filter *RoomsFilter) ([]Rooms, error)
 	CreateRoom(room Rooms) (*Rooms, error)
 	DeleteRoom(room_id, userId int64) error
 	UpdateRoom(room Rooms, userId int64) (*Rooms, error)
 	AddUsers(roomId, userId int64, users []int64) (errorsArray error)
-	AddMessage(message Messages) (*Messages, error)
-	UpdateMessage(message Messages) (*Messages, error)
+	AddMessage(message Message) (*Message, error)
+	UpdateMessage(message Message) (*Message, error)
 	DeleteMessage(messageId int64) error
 }
 
@@ -22,7 +22,7 @@ type RoomServiceImpl struct {
 	messagesRepository MessagesRepository
 }
 
-func (s *RoomServiceImpl) GetRoom(id int64) (*Rooms, []Messages, error) {
+func (s *RoomServiceImpl) GetRoom(id int64) (*Rooms, []Message, error) {
 	result, Messages, err := s.RoomRepository.GetRoom(id)
 	if err != nil {
 		return nil, nil, err
@@ -102,7 +102,7 @@ func (s *RoomServiceImpl) AddUsers(roomId, userId int64, users []int64) (err err
 	return
 }
 
-func (s *RoomServiceImpl) AddMessage(message Messages) (*Messages, error) {
+func (s *RoomServiceImpl) AddMessage(message Message) (*Message, error) {
 	result, err := s.messagesRepository.CreateMessage(ToMessagesDto(message))
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (s *RoomServiceImpl) AddMessage(message Messages) (*Messages, error) {
 	return &resultMessages, nil
 }
 
-func (s *RoomServiceImpl) UpdateMessage(message Messages) (*Messages, error) {
+func (s *RoomServiceImpl) UpdateMessage(message Message) (*Message, error) {
 	result, err := s.messagesRepository.UpdateMessage(ToMessagesDto(message))
 	if err != nil {
 		return nil, err

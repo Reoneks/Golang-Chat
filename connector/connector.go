@@ -45,6 +45,7 @@ func (c *WSConnectorImpl) connect(conn Connection) {
 }
 
 func (c *WSConnectorImpl) disconnect(conn Connection) {
+	// TODO: check not nil
 	room := *c.rooms[conn.GetCurrentRoom()]
 	room.RemoveConnection(conn)
 }

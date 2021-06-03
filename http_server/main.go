@@ -1,12 +1,11 @@
 package http_server
 
 import (
+	"github.com/gorilla/websocket"
 	"net/http"
 	"net/url"
 	. "test/connector"
 	"test/http_server/handlers/ws"
-
-	"github.com/gorilla/websocket"
 
 	. "test/auth"
 	"test/http_server/handlers/auth_handler"
@@ -76,11 +75,11 @@ func (s *httpServer) Start() error {
 
 	private := router.Group("/")
 
-	//^ WS Handlers
-	router.Any("/ws", ws.WSHandler(s.connector, s.upgrader))
-
 	private.Use(middleware.AuthMiddleware(s.userService, s.jwt))
 	{
+		//^ WS Handlers
+		private.Any("/ws", ws.WSHandler(s.connector, s.upgrader))
+
 		//^ User Handlers
 		private.GET("/user/:userId", user_handler.GetUserHandler(s.userService))
 		private.GET("/user/email", user_handler.GetUserByEmailHandler(s.userService))

@@ -10,6 +10,7 @@ type RoomConnections interface {
 
 type RoomConnectionsImpl struct {
 	sync.RWMutex
+
 	roomID          int64
 	connections     []Connection
 	unSubscribeChan chan struct{}
@@ -39,7 +40,6 @@ func (rc *RoomConnectionsImpl) SendMessage(data interface{}) {
 	for _, conn := range rc.connections {
 		err := conn.SendMessage(data)
 		if err != nil {
-			//TODO: some error here
 			rc.RemoveConnection(conn)
 		}
 	}

@@ -9,53 +9,82 @@ import (
 	"github.com/go-chi/jwtauth"
 )
 
+const BearerToken = "Bearer "
+
+func getToken(r *http.Request, findTokenFns ...func(r *http.Request) string) string {
+	tokenStr := ""
+	for _, fn := range findTokenFns {
+		tokenStr = fn(r)
+		if tokenStr != "" {
+			break
+		}
+	}
+	return tokenStr
+}
+
+func tokenFromQuery(r *http.Request) string {
+	return r.URL.Query().Get("jwt")
+}
+
+func tokenFromHeader(r *http.Request) string {
+	bearer := r.Header.Get("Authorization")
+	if strings.Contains(bearer, BearerToken) {
+		bearer = bearer[len(BearerToken):]
+	}
+	return bearer
+}
+
 func AuthMiddleware(userService user.UserService, jwt *jwtauth.JWTAuth) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if len(ctx.Request.Header["Authorization"]) == 0 {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "Not enough data (There is no token)",
-			})
-			return
-		} else if len(strings.Split(ctx.Request.Header["Authorization"][0], " ")) == 0 {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "Token issued wrong",
-			})
+		//if len(ctx.Request.Header["Authorization"]) == 0 {
+		//	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+		//		"error": "Not enough data (There is no payload)",
+		//	})
+		//	return
+		//} else if len(strings.Split(ctx.Request.Header["Authorization"][0], " ")) == 0 {
+		//	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+		//		"error": "Token issued wrong",
+		//	})
+		//	return
+		//}
+		//token := strings.Split(ctx.Request.Header["Authorization"][0], " ")[1]
+
+		token := getToken(ctx.Request, tokenFromQuery, tokenFromHeader)
+		if token == "" {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
 			return
 		}
-		reqToken := strings.Split(ctx.Request.Header["Authorization"][0], " ")[1]
-		token, err := jwtauth.VerifyToken(jwt, reqToken)
+
+		payload, err := jwtauth.VerifyToken(jwt, token)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
+			return
+		}
+
+		userId, ok := payload.Get("user_id")
+		if !ok {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
+			return
+		}
+
+		obtainedUser, err := userService.GetUser(int64(userId.(float64)))
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
 			})
 			return
 		}
 
-		userId, ok := token.Get("user_id")
-		if !ok {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "can't get user_id",
-			})
+		if obtainedUser == nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
 			return
 		}
-		obtainedUser, err := userService.GetUser(int64(userId.(float64)))
-		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
-			})
-			return
-		} else if obtainedUser == nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "can't find user",
-			})
-			return
-		}
+
 		if obtainedUser.Status != user.Active {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-				"error": "can't login",
-			})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
 			return
 		}
+
 		ctx.Set("user", obtainedUser)
 		ctx.Next()
 	}

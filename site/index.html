@@ -91,13 +91,14 @@
             email: "null", // Email address used for grabbing an avatar
             username: "null", // Our username
             password: "null", // Our password
-            joined: false, // True if email and username have been filled in
+            joined: true, // True if email and username have been filled in
             type: 0,
         },
 
         created: function() {
             var self = this;
-            this.ws = new WebSocket('ws://' + window.location.host + '/ws');
+            var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.ZWMwJEyDmtUWNQxkbsuCxmSktu0Bt3YHFewQd_B12D0";
+            this.ws = new WebSocket('ws://' + window.location.host + '/ws?jwt=' + token);
             this.ws.addEventListener('message', function(e) {
                 var msg = JSON.parse(e.data);
                 self.chatContent += '<div class="chip">'

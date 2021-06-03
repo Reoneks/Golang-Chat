@@ -2,7 +2,11 @@ package room
 
 import "time"
 
-type Messages struct {
+// TODO: Add StatusType
+// 1 - Unread
+// 2 - Read
+
+type Message struct {
 	Id        int64     `json:"id"`
 	Text      string    `json:"text"`
 	Status    int64     `json:"status"`
