@@ -27,12 +27,12 @@ func (c *WSConnectorImpl) AddConnection(conn Connection) {
 }
 
 func (c *WSConnectorImpl) SendMessageByRoom(roomID int64, data interface{}) {
-	room := *c.rooms[roomID]
-	if room == nil {
+	if c.rooms[roomID] == nil {
 		c.log.Error("connector 32: room is nil")
 		//TODO: some error here
 		return
 	}
+	room := *c.rooms[roomID]
 	room.SendMessage(data)
 }
 
