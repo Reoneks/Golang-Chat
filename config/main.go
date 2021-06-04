@@ -14,6 +14,7 @@ type Config interface {
 	JWT() *jwtauth.JWTAuth
 	ServerAddress() *url.URL
 	Log() *logrus.Entry
+	AppEnvironment() string
 }
 
 type ConfigImpl struct {
@@ -24,6 +25,7 @@ type ConfigImpl struct {
 	jwt      *jwtauth.JWTAuth
 	url      *url.URL
 	log      *logrus.Entry
+	app_env  string
 }
 
 func NewConfig() Config {
