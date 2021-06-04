@@ -60,9 +60,6 @@
             <input type="email" v-model.trim="email" placeholder="Email">
         </div>
         <div class="input-field col s8">
-            <input type="text" v-model.trim="username" placeholder="Username">
-        </div>
-        <div class="input-field col s8">
             <input type="password" v-model.trim="password" placeholder="Password">
         </div>
         <div class="input-field col s4">
@@ -88,28 +85,14 @@
             ws: null, // Our websocket
             newMsg: '', // Holds new messages to be sent to the server
             chatContent: '', // A running list of chat messages displayed on the screen
-            email: "null", // Email address used for grabbing an avatar
-            username: "null", // Our username
-            password: "null", // Our password
-            joined: true, // True if email and username have been filled in
+            email: "some@email.com", // Email address used for grabbing an avatar
+            password: "SomeUser", // Our password
+            joined: false, // True if email and username have been filled in
             type: 0,
         },
 
         created: function() {
             var self = this;
-            var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.ZWMwJEyDmtUWNQxkbsuCxmSktu0Bt3YHFewQd_B12D0";
-            this.ws = new WebSocket('ws://' + window.location.host + '/ws?jwt=' + token);
-            this.ws.addEventListener('message', function(e) {
-                var msg = JSON.parse(e.data);
-                self.chatContent += '<div class="chip">'
-                        + '<img src="' + self.gravatarURL("some@example.com") + '">'
-                        + "user"
-                    + '</div>'
-                    + emojione.toImage(msg.data) + '<br/>'; // Parse emojis
-
-                var element = document.getElementById('chat-messages');
-                element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
-            });
         },
 
         methods: {
@@ -125,13 +108,9 @@
                 }
             },
 
-            join: function () {
+            async join() {
                 if (!this.email) {
                     Materialize.toast('You must enter an email', 2000);
-                    return
-                }
-                if (!this.username) {
-                    Materialize.toast('You must choose a username', 2000);
                     return
                 }
                 if (!this.password) {
@@ -139,19 +118,73 @@
                     return
                 }
                 this.email = $('<p>').html(this.email).text();
-                this.username = $('<p>').html(this.username).text();
                 this.password = $('<p>').html(this.password).text();
+
+                var requestOptions = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: this.email,
+                        password: this.password
+                    })
+                };
+                var token = ""
+                var self = this;
+                
+                var response = await fetch("http://localhost:8080/login", requestOptions)
+                var data = await response.json()
+                token = data.token
+                if (token == ""){
+                    Materialize.toast('Email or password is incorrect', 2000);
+                    return
+                }
+
+                this.ws = new WebSocket('ws://' + window.location.host + '/ws?jwt=' + token);
+                this.ws.addEventListener('message', function(e) {
+                    var msg = JSON.parse(e.data);
+                    if (msg.text != null ? true : false){
+                        self.chatContent += '<div class="chip">'
+                                + '<img src="' + 'http://www.gravatar.com/avatar/' + CryptoJS.MD5("some@example.com") + '">'
+                                + "user"
+                            + '</div>'
+                            + emojione.toImage(msg.text) + '<br/>'; // Parse emojis
+
+                        var element = document.getElementById('chat-messages');
+                        element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
+                    } else {
+                        if (msg.type == 1){
+                            Materialize.toast('User connected', 2000);
+                        } else if (msg.type == 2){
+                            Materialize.toast('User disconnected', 2000);
+                        }
+                    }
+                });
+
+                requestOptions = {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer " + token
+                    }
+                };
+
+                var roomId = ""
+
+                var response = await fetch("http://localhost:8080/rooms", requestOptions)
+                var data = await response.json()
+                roomId = String(data[0].id)
+                if (roomId == "") {
+                    Materialize.toast('There is no rooms', 2000);
+                    return
+                }
+
                 this.ws.send(
                     JSON.stringify({
                         type: 1,
-                        data: "1"
-                    }
-                ));
+                        data: roomId
+                    })
+                );
                 this.joined = true;
-            },
-
-            gravatarURL: function(email) {
-                return 'http://www.gravatar.com/avatar/' + CryptoJS.MD5(email);
             }
         }
     });

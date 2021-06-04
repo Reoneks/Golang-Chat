@@ -4,7 +4,6 @@ import (
 	"sync"
 	. "test/room"
 
-	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 )
 
@@ -17,7 +16,6 @@ type WSConnectorImpl struct {
 	sync.RWMutex
 
 	log         *logrus.Entry
-	upgrader    *websocket.Upgrader
 	rooms       map[int64]*RoomConnections
 	roomService RoomService
 }
@@ -29,7 +27,6 @@ func (c *WSConnectorImpl) AddConnection(conn Connection) {
 func (c *WSConnectorImpl) SendMessageByRoom(roomID int64, data interface{}) {
 	if c.rooms[roomID] == nil {
 		c.log.Error("connector 32: room is nil")
-		//TODO: some error here
 		return
 	}
 	room := *c.rooms[roomID]
@@ -45,7 +42,10 @@ func (c *WSConnectorImpl) connect(conn Connection) {
 }
 
 func (c *WSConnectorImpl) disconnect(conn Connection) {
-	// TODO: check not nil
+	if c.rooms[conn.GetCurrentRoom()] == nil {
+		c.log.Error("connector 32: room is nil")
+		return
+	}
 	room := *c.rooms[conn.GetCurrentRoom()]
 	room.RemoveConnection(conn)
 }

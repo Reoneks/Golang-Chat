@@ -13,8 +13,10 @@ func WSHandler(connector Connector, upgrader *websocket.Upgrader) func(c *gin.Co
 	return func(ctx *gin.Context) {
 		conn, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err,
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusInternalServerError,
+				Meta: "ws_handler 15: Upgrade error",
 			})
 			return
 		}

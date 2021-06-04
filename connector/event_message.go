@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"test/room"
+	. "test/user"
 )
 
 type EventType int64
@@ -43,13 +44,23 @@ func (c *WSConnectorImpl) onEventMessage(conn Connection, msg []byte) {
 		room := *c.rooms[roomNumber]
 		room.AddConnection(conn)
 
-		//struct{
-		//	RoomId int64
-		//  User *User
-		//}
-		// Marshal
-		// TODO: Send to frontend message := EventMessage{ Type: 1, Data: JSON { RoomId: roomID, User: conn.GetUser() } }
-		// room.SendMessage(message)
+		sendToFront := struct {
+			RoomId int64
+			User   *User
+		}{
+			RoomId: roomNumber,
+			User:   conn.GetUser(),
+		}
+		bytes, err := json.Marshal(sendToFront)
+		if err != nil {
+			c.log.Error(err)
+			return
+		}
+		message := EventMessage{
+			Type: 1,
+			Data: string(bytes),
+		}
+		room.SendMessage(message)
 	case UnSubscribeRoomEventType:
 		roomNumber, err := strconv.ParseInt(message.Data, 10, 64)
 		if err != nil {
@@ -62,13 +73,23 @@ func (c *WSConnectorImpl) onEventMessage(conn Connection, msg []byte) {
 		}
 		room := *pRoom
 		room.RemoveConnection(conn)
-		//struct{
-		//	RoomId int64
-		//  UserId int64
-		//}
-		// Marshal
-		// TODO: Send to frontend message := EventMessage{ Type: 1, Data: JSON { RoomId: roomID, UserId: conn.GetUser().Id } }
-		// room.SendMessage(message)
+		sendToFront := struct {
+			RoomId int64
+			UserId int64
+		}{
+			RoomId: roomNumber,
+			UserId: conn.GetUser().Id,
+		}
+		bytes, err := json.Marshal(sendToFront)
+		if err != nil {
+			c.log.Error(err)
+			return
+		}
+		message := EventMessage{
+			Type: 2,
+			Data: string(bytes),
+		}
+		room.SendMessage(message)
 	case NewMessageEventType:
 		message := room.Message{
 			Text:      message.Data,

@@ -20,7 +20,11 @@ func GetUsersHandler(userService user.UserService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var getUsersRequest GetUsersRequest
 		if err := ctx.Bind(&getUsersRequest); err != nil {
-			ctx.JSON(http.StatusBadRequest, err)
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "get_users_handler 22: Bind failed",
+			})
 			return
 		}
 
@@ -35,7 +39,11 @@ func GetUsersHandler(userService user.UserService) func(ctx *gin.Context) {
 			for _, a := range statuses {
 				i, err := strconv.Atoi(a)
 				if err != nil {
-					ctx.JSON(http.StatusBadRequest, gin.H{})
+					ctx.Errors = append(ctx.Errors, &gin.Error{
+						Err:  err,
+						Type: http.StatusBadRequest,
+						Meta: "get_users_handler 41: Status convert failed",
+					})
 					return
 				}
 				statusesInt64 = append(statusesInt64, int64(i))
@@ -44,11 +52,17 @@ func GetUsersHandler(userService user.UserService) func(ctx *gin.Context) {
 		}
 		user, err := userService.GetUsers(filter)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusInternalServerError,
+				Meta: "get_users_handler 54: Get users error",
 			})
 		} else if user == nil {
-			ctx.JSON(http.StatusNotFound, gin.H{})
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusNotFound,
+				Meta: "get_users_handler 60: Get users failed",
+			})
 		} else {
 			ctx.JSON(http.StatusOK, user)
 		}

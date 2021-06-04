@@ -6,7 +6,7 @@ import (
 )
 
 type JWT struct {
-	Secret    string `env:"JWT_SECRET" envDefault:"secret"`
+	Secret    string `env:"JWT_SECRET" envDefault:"9caf06bb4436cdbfa20af9121a626bc1093c4f54b31c0fa937957856135345b6"`
 	Algorithm string `env:"JWT_ALGORITHM" envDefault:"HS256"`
 }
 

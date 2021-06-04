@@ -21,14 +21,20 @@ func RegistrationHandler(userService user.UserService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var registrationRequest RegistrationRequest
 		if err := ctx.BindJSON(&registrationRequest); err != nil {
-			ctx.JSON(http.StatusBadRequest, err)
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "registration_handler 23: Bind failed",
+			})
 			return
 		}
 
 		validate := validator.New()
 		if err := validate.Struct(&registrationRequest); err != nil {
-			ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-				"error": err.Error(),
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "registration_handler 33: Validation failed",
 			})
 			return
 		}
@@ -43,12 +49,16 @@ func RegistrationHandler(userService user.UserService) func(ctx *gin.Context) {
 		}
 		user, err := userService.Registration(userModel)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusInternalServerError,
+				Meta: "registration_handler 51: Registration error",
 			})
 		} else if user == nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": "can't register the user",
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "registration_handler 57: Can't register the user",
 			})
 		} else {
 			ctx.JSON(http.StatusCreated, user)

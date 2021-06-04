@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"test/auth"
@@ -9,6 +8,8 @@ import (
 	"test/http_server"
 	. "test/room"
 	. "test/user"
+
+	"github.com/gorilla/websocket"
 
 	c "test/config"
 
@@ -31,6 +32,7 @@ func main() {
 	db := config.DBClient()
 	jwt := config.JWT()
 	log := config.Log()
+	app_env := config.AppEnvironment()
 
 	var upgrader = &websocket.Upgrader{
 		ReadBufferSize:  readBufferSize,
@@ -58,6 +60,7 @@ func main() {
 		upgrader,
 		jwt,
 		log,
+		app_env,
 	)
 
 	log.Printf("HTTP Server listening at: %v", config.ServerAddress().String())
@@ -65,5 +68,4 @@ func main() {
 	if err := httpServer.Start(); err != nil {
 		panic(err)
 	}
-
 }

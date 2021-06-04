@@ -34,21 +34,8 @@ func tokenFromHeader(r *http.Request) string {
 	return bearer
 }
 
-func AuthMiddleware(userService user.UserService, jwt *jwtauth.JWTAuth) gin.HandlerFunc {
+func AuthMiddleware(userService user.UserService, jwt *jwtauth.JWTAuth, app_env string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		//if len(ctx.Request.Header["Authorization"]) == 0 {
-		//	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-		//		"error": "Not enough data (There is no payload)",
-		//	})
-		//	return
-		//} else if len(strings.Split(ctx.Request.Header["Authorization"][0], " ")) == 0 {
-		//	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-		//		"error": "Token issued wrong",
-		//	})
-		//	return
-		//}
-		//token := strings.Split(ctx.Request.Header["Authorization"][0], " ")[1]
-
 		token := getToken(ctx.Request, tokenFromQuery, tokenFromHeader)
 		if token == "" {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{})
@@ -69,9 +56,13 @@ func AuthMiddleware(userService user.UserService, jwt *jwtauth.JWTAuth) gin.Hand
 
 		obtainedUser, err := userService.GetUser(int64(userId.(float64)))
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
+			if app_env == "development" {
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+					"error": err,
+				})
+			} else {
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{})
+			}
 			return
 		}
 

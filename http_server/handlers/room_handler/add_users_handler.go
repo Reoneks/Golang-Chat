@@ -17,7 +17,11 @@ func AddUsersHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var addUsersRequest AddUsersRequest
 		if err := ctx.BindJSON(&addUsersRequest); err != nil {
-			ctx.JSON(http.StatusBadRequest, err)
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "add_users_handler 19: Bind failed",
+			})
 			return
 		}
 
@@ -28,10 +32,16 @@ func AddUsersHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 			addUsersRequest.UsersToAdd,
 		)
 		if err != nil && err.Error() == "you are not allowed to do it" {
-			ctx.JSON(http.StatusForbidden, gin.H{})
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusForbidden,
+				Meta: "add_users_handler 34: This user is not allowed to do this",
+			})
 		} else if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err,
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusInternalServerError,
+				Meta: "add_users_handler 40: Add users error",
 			})
 		} else {
 			ctx.JSON(http.StatusCreated, gin.H{})

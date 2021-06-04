@@ -17,26 +17,36 @@ func LoginHandler(authService auth.AuthService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var loginRequest LoginRequest
 		if err := ctx.BindJSON(&loginRequest); err != nil {
-			ctx.JSON(http.StatusBadRequest, err)
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "login_handler 19: Bind failed",
+			})
 			return
 		}
 
 		validate := validator.New()
 		if err := validate.Struct(&loginRequest); err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "login_handler 29: Validation failed",
 			})
 			return
 		}
 
 		login, err := authService.Login(loginRequest.Email, loginRequest.Password)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusInternalServerError,
+				Meta: "login_handler 39: Login error",
 			})
 		} else if login == nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": "can't login",
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusNotFound,
+				Meta: "login_handler 45: Login failed",
 			})
 		} else {
 			ctx.JSON(http.StatusOK, login)

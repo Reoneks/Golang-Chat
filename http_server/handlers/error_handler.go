@@ -1,19 +1,11 @@
 package handlers
 
 import (
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
 
-//ctx.Errors = append(ctx.Errors, &gin.Error{
-//	Err:  errors.New("some error"),
-//	Type: http.StatusBadRequest,
-//	Meta: "Some message",
-//})
-
-func ErrorHandling(log *logrus.Entry) gin.HandlerFunc {
+func ErrorHandling(log *logrus.Entry, app_env string) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		ctx.Next()
 		err := ctx.Errors.Last()
@@ -22,13 +14,14 @@ func ErrorHandling(log *logrus.Entry) gin.HandlerFunc {
 		}
 		errInfo := err.Meta.(string)
 
-		log.WithFields(logrus.Fields{
-			"time":    time.Now(),
-			"message": errInfo,
-		}).WithError(err.Err)
+		log.Error(errInfo, " err:", err.Err)
 
-		ctx.AbortWithStatusJSON(int(err.Type), gin.H{
-			"Message:": errInfo,
-		})
+		if app_env == "development" {
+			ctx.AbortWithStatusJSON(int(err.Type), gin.H{
+				"Error:": errInfo,
+			})
+		} else {
+			ctx.AbortWithStatusJSON(int(err.Type), gin.H{})
+		}
 	}
 }

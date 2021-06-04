@@ -65,7 +65,9 @@ func (r *RoomRepositoryImpl) GetRooms(filter *RoomsFilter) (rooms []RoomsDto, er
 		if filter.Name != nil {
 			search = append(search, "name LIKE '%"+*filter.Name+"%'")
 		}
-		findResult = findResult.Where(strings.Join(search, " AND "))
+		if len(search) > 0 {
+			findResult = findResult.Where(strings.Join(search, " AND "))
+		}
 	}
 	if err := findResult.Find(&rooms).Error; err != nil {
 		return nil, err

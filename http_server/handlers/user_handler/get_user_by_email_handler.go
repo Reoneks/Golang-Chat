@@ -16,25 +16,37 @@ func GetUserByEmailHandler(userService user.UserService) func(ctx *gin.Context) 
 	return func(ctx *gin.Context) {
 		var getUserByEmailRequest GetUserByEmailRequest
 		if err := ctx.Bind(&getUserByEmailRequest); err != nil {
-			ctx.JSON(http.StatusBadRequest, err)
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "get_user_by_email_handler 18: Bind failed",
+			})
 			return
 		}
 
 		validate := validator.New()
 		if err := validate.Struct(&getUserByEmailRequest); err != nil {
-			ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-				"error": err.Error(),
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "get_user_by_email_handler 28: Validation failed",
 			})
 			return
 		}
 
 		user, err := userService.GetUserByEmail(getUserByEmailRequest.Email)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusInternalServerError,
+				Meta: "get_user_by_email_handler 38: Get user by email error",
 			})
 		} else if user == nil {
-			ctx.JSON(http.StatusNotFound, gin.H{})
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusNotFound,
+				Meta: "get_user_by_email_handler 44: Get user by email failed",
+			})
 		} else {
 			ctx.JSON(http.StatusOK, user)
 		}

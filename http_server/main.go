@@ -1,11 +1,13 @@
 package http_server
 
 import (
-	"github.com/gorilla/websocket"
 	"net/http"
 	"net/url"
 	. "test/connector"
+	"test/http_server/handlers"
 	"test/http_server/handlers/ws"
+
+	"github.com/gorilla/websocket"
 
 	. "test/auth"
 	"test/http_server/handlers/auth_handler"
@@ -34,6 +36,7 @@ type httpServer struct {
 	upgrader    *websocket.Upgrader
 	jwt         *jwtauth.JWTAuth
 	log         *logrus.Entry
+	app_env     string
 }
 
 func NewHTTPServer(
@@ -45,6 +48,7 @@ func NewHTTPServer(
 	upgrader *websocket.Upgrader,
 	jwt *jwtauth.JWTAuth,
 	log *logrus.Entry,
+	app_env string,
 ) HTTPServer {
 	return &httpServer{
 		url,
@@ -55,6 +59,7 @@ func NewHTTPServer(
 		upgrader,
 		jwt,
 		log,
+		app_env,
 	}
 }
 
@@ -75,7 +80,8 @@ func (s *httpServer) Start() error {
 
 	private := router.Group("/")
 
-	private.Use(middleware.AuthMiddleware(s.userService, s.jwt))
+	private.Use(middleware.AuthMiddleware(s.userService, s.jwt, s.app_env))
+	private.Use(handlers.ErrorHandling(s.log, s.app_env))
 	{
 		//^ WS Handlers
 		private.Any("/ws", ws.WSHandler(s.connector, s.upgrader))

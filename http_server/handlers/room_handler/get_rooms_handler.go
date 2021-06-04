@@ -15,7 +15,11 @@ func GetRoomsHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var getRoomsRequest GetRoomsRequest
 		if err := ctx.Bind(&getRoomsRequest); err != nil {
-			ctx.JSON(http.StatusBadRequest, err)
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "get_rooms_handler 17: Bind failed",
+			})
 			return
 		}
 
@@ -24,11 +28,17 @@ func GetRoomsHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 		}
 		rooms, err := roomsService.GetRooms(filter)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusInternalServerError,
+				Meta: "get_rooms_handler 30: Get rooms error",
 			})
 		} else if rooms == nil {
-			ctx.JSON(http.StatusNotFound, gin.H{})
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusNotFound,
+				Meta: "get_rooms_handler 36: Get rooms failed",
+			})
 		} else {
 			ctx.JSON(http.StatusOK, rooms)
 		}

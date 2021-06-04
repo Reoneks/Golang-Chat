@@ -21,7 +21,11 @@ func UpdateRoomHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var updateRoomRequest UpdateRoomRequest
 		if err := ctx.BindJSON(&updateRoomRequest); err != nil {
-			ctx.JSON(http.StatusBadRequest, err)
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "update_room_handler 23: Bind failed",
+			})
 			return
 		}
 
@@ -31,13 +35,23 @@ func UpdateRoomHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 			thisUser.(*user.User).Id,
 		)
 		if err != nil && err.Error() == "you are not allowed to do it" {
-			ctx.JSON(http.StatusForbidden, gin.H{})
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusForbidden,
+				Meta: "update_room_handler 37: This user is not allowed to do this",
+			})
 		} else if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusInternalServerError,
+				Meta: "update_room_handler 43: Update room error",
 			})
 		} else if room == nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{})
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "update_room_handler 49: Update room failed",
+			})
 		} else {
 			ctx.JSON(http.StatusNoContent, gin.H{})
 		}

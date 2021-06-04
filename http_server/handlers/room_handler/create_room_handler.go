@@ -20,17 +20,27 @@ func CreateRoomHandler(roomsService room.RoomService) func(ctx *gin.Context) {
 	return func(ctx *gin.Context) {
 		var createRoomsRequest CreateRoomsRequest
 		if err := ctx.BindJSON(&createRoomsRequest); err != nil {
-			ctx.JSON(http.StatusBadRequest, err)
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "create_room_handler 22: Bind failed",
+			})
 			return
 		}
 
 		rooms, err := roomsService.CreateRoom(room.Rooms(createRoomsRequest))
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusInternalServerError,
+				Meta: "create_room_handler 32: Create room error",
 			})
 		} else if rooms == nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{})
+			ctx.Errors = append(ctx.Errors, &gin.Error{
+				Err:  err,
+				Type: http.StatusBadRequest,
+				Meta: "create_room_handler 38: Create room failed",
+			})
 		} else {
 			ctx.JSON(http.StatusCreated, rooms)
 		}
